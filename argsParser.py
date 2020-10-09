@@ -18,6 +18,9 @@ def parseArgs():
     parser.add_argument('-p', '--password', required=True,
         help='Contraseña de la cuenta de Remarkets para utilizar la API',
         dest='apiPass')
+    parser.add_argument('-a', '--account', required=True,
+        help='Valor de la cuenta de Remarkets para utilizar la API',
+        dest='apiAcc')
     parser.add_argument('--price', default=defaultBIDPrice, type=float,
         help='Valor al cual se debe colocar la orden de compra en ' +
         'el caso que no haya ninguna entrada',
