@@ -10,20 +10,21 @@ def main():
     if(args.bidPrice <= 0):
         print('El valor ingresado para [--price] es inválido')
     try:
-        success = reMarketsClient.initClient(args.apiUser, args.apiPass)
-        if(success):
-            md = reMarketsClient.getMarketData(args.symbol)
+        client = reMarketsClient.myRofexClient(args.apiUser, args.apiPass, args.apiAcc)
+        if(client.initialized):
+            md = client.getMarketData(args.symbol)
             if(md != None):
                 getLastPrice(md)
                 bidPrice = getLastBIDPrice(md)
                 if(bidPrice != None and bidPrice - args.bidDif > 0):
-                    reMarketsClient.placeNewBIDs(args.symbol, bidPrice - args.bidDif, orderType=args.bidOrdType)
+                    client.placeNewBIDs(args.symbol, bidPrice - args.bidDif, orderType=args.bidOrdType)
                 else:
-                    reMarketsClient.placeNewBIDs(args.symbol, args.bidPrice, orderType=args.bidOrdType)
+                    client.placeNewBIDs(args.symbol, args.bidPrice, orderType=args.bidOrdType)
     except Exception as ex:
         print('Unhandled exception: {}'.format(ex.msg))
 
-    reMarketsClient.closeClient()
+    client.closeClient()
+    print('Se ha cerrado la sesión correctamente')
 
 def getLastPrice(marketData):
     ''' Gets LP for a given MarketData and prints result
