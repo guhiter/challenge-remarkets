@@ -1,5 +1,5 @@
 import argparse
-from constants import defaultBIDPrice, defaultBIDDif
+from constants import defaultBIDPrice, defaultBIDDif, defaultOrdType
 from pyRofex import OrderType
 
 def my_parse_args():
@@ -29,7 +29,7 @@ def my_parse_args():
         help='Diferencia a la cual se debe colocar la orden de compra ' +
         'en caso que exista al menos una entrada',
         dest='bidDif')
-    parser.add_argument('--ordType', default='limit',
+    parser.add_argument('--ordType', default=defaultOrdType,
         choices=['limit', 'market', 'market_to_limit'],
         help='El tipo de orden que tendrá la BID',
         dest='bidOrdType')
