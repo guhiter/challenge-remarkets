@@ -1,7 +1,7 @@
 import pyRofex
 import pyRofex.components.exceptions as pExceptions
 
-class myRofexClient():
+class MyRofexClient:
     def __init__(self, user, password, account):
         ''' Initialize the client for Remarkets and handle exceptions.
 
@@ -19,6 +19,7 @@ class myRofexClient():
         self.password = password
         self.account = account
         self.initialized = False
+        self.webSocketOpen = False
         loginMsg = 'Iniciando sesión en Remarkets'
         loginSuccessMsg = 'Ha sido autenticado correctamente'
         loginErrorMsg = 'Fallo en la autenticación, usuario o contraseña inválido'
@@ -32,7 +33,8 @@ class myRofexClient():
             self.initialized = True
             print(loginSuccessMsg)
 
-    def getMarketData(self, symbol):
+    def get_market_data_rest(self, symbol,
+        entries=[pyRofex.MarketDataEntry.BIDS, pyRofex.MarketDataEntry.LAST]):
         ''' Checks if the param symbol is valid and returns its market data
 
         :param symbol: Instrument symbol to send in the request
@@ -49,8 +51,7 @@ class myRofexClient():
 
         print(startMsg)
         try:
-            ret = pyRofex.get_market_data(symbol,
-                entries=[pyRofex.MarketDataEntry.BIDS, pyRofex.MarketDataEntry.LAST])
+            ret = pyRofex.get_market_data(symbol, entries)
             if(ret['status'] == 'OK'):
                 print(successMsg)
                 ret = ret['marketData']
@@ -61,7 +62,7 @@ class myRofexClient():
             print(errorMsg)
         return ret
 
-    def placeNewBIDs(self, symbol, value, orderType = pyRofex.OrderType.LIMIT, count=1):
+    def place_new_bids_rest(self, symbol, value, orderType = pyRofex.OrderType.LIMIT, count=1):
         '''Makes a request to the API that sends a new order to the Market
 
         :param symbol: Instrument symbol to send in the request
@@ -78,6 +79,7 @@ class myRofexClient():
         successMsg = 'Se ha ingresado la orden correctamente'
         failedMsg = 'No se pudo ingresar la orden'
         deniedAccessMsg = 'No tienes acceso a la cuenta {}'
+        invalidAccountMsg = 'No existe la cuenta: {}'
         errorMsg = 'Ocurrió un error al intentar ingresar la orden'
         ret = False
 
@@ -96,13 +98,63 @@ class myRofexClient():
                     print(deniedAccessMsg.format(self.account))
                 elif(result['message'] == 'Missing required parameter.'):
                     print('NO TIENE CUENTA')
+                elif(result['message'] == 'Invalid Account.'):
+                    print(invalidAccountMsg.format(self.account))
                 else:
-                    print(errorMsg + '\n' + result['description'])
+                    print(errorMsg + ':' + result['description'])
         except pExceptions.ApiException as ex:
             print(errorMsg)
         return ret
 
-    def closeClient(self):
+
+
+    def _market_data_handler(self,message):
+        print("Market Data Message Received: {0}".format(message))
+    def _order_report_handler(self,message):
+        print("Order Report Message Received: {0}".format(message))
+    def _error_handler(self,message):
+        print("Error Message Received: {0}".format(message))
+    def _exception_handler(self,e):
+        print("Exception Occurred: {0}".format(e.message))
+
+
+    def start_websocket(self,
+        market_data_handler=None,
+        order_report_handler=None,
+        error_handler=None,
+        exception_handler=None):
+        if(market_data_handler == None):
+            market_data_handler = self._market_data_handler
+        if(order_report_handler == None):
+            order_report_handler = self._order_report_handler
+        if(error_handler == None):
+            error_handler = self._error_handler
+        if(exception_handler == None):
+            exception_handler = self._exception_handler
+        try:
+            if(not self.webSocketOpen):
+                pyRofex.init_websocket_connection(
+                    market_data_handler=market_data_handler,
+                    order_report_handler=order_report_handler,
+                    error_handler=error_handler,
+                    exception_handler=exception_handler)
+                self.webSocketOpen = True
+                print("WebSocket iniciado correctamente")
+        except pExceptions.ApiException as ex:
+            print(ex.msg)
+
+    def subscribe_market_data(self, symbols,
+        entries = [pyRofex.MarketDataEntry.BIDS, pyRofex.MarketDataEntry.LAST, pyRofex.MarketDataEntry.OFFERS]):
+        try:
+            if(self.webSocketOpen):
+                pyRofex.market_data_subscription(symbols, entries)
+                print('Consultando BID {}'.format(symbols))
+            else:
+                print('WEBSOCKET cerrado')
+        except pExceptions.ApiException as e:
+            print("Ocurrió una excepción {}".format(ex.msg))
+
+    def close_websocket(self):
         '''
 
         '''
@@ -110,12 +162,13 @@ class myRofexClient():
         successMsg = 'Se ha obtenido el detalle del símbolo'
         errorMsg = 'Símbolo inválido'
         try:
-            pass
+            if(self.webSocketOpen):
+                pyRofex.close_websocket_connection()
+                self.webSocketOpen = False
+                print("WebSocket cerrado correctamente")
         except pExceptions.ApiException as ex:
-            pass
-        else:
-            pass
-        pass
+            print(ex.msg)
+
 
 if __name__ == "__main__":
     pass

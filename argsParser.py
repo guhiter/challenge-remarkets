@@ -2,7 +2,7 @@ import argparse
 from constants import defaultBIDPrice, defaultBIDDif
 from pyRofex import OrderType
 
-def parseArgs():
+def my_parse_args():
     parser = argparse.ArgumentParser(description=
         'Consultar sobre Remarkets el BID de un símbolo e ingresar una orden ' +
         'de compra a ${:.2f} menos de la última entrada o '.format(defaultBIDDif) +
@@ -29,11 +29,19 @@ def parseArgs():
         help='Diferencia a la cual se debe colocar la orden de compra ' +
         'en caso que exista al menos una entrada',
         dest='bidDif')
-    parser.add_argument('--ordType', default=OrderType.LIMIT,
-        choices=[OrderType.LIMIT, OrderType.MARKET, OrderType.MARKET_TO_LIMIT],
+    parser.add_argument('--ordType', default='limit',
+        choices=['limit', 'market', 'market_to_limit'],
         help='El tipo de orden que tendrá la BID',
         dest='bidOrdType')
-    return parser.parse_args()
+
+    args = parser.parse_args()
+    if(args.bidOrdType == 'market_to_limit'):
+        args.bidOrdType = OrderType.MARKET_TO_LIMIT
+    elif(args.bidOrdType == 'market'):
+        args.bidOrdType = OrderType.MARKET
+    else:
+        args.bidOrdType = OrderType.LIMIT
+    return args
 
 if __name__ == "__main__":
     parseArgs()
