@@ -78,6 +78,7 @@ class MyRofexClient:
         startMsg = 'Ingresando orden a ${:.2f}'
         successMsg = 'Se ha ingresado la orden correctamente'
         failedMsg = 'No se pudo ingresar la orden'
+        rejectedMsg = 'La orden ha sido rechazada: {}'
         deniedAccessMsg = 'No tienes acceso a la cuenta {}'
         invalidAccountMsg = 'No existe la cuenta: {}'
         errorMsg = 'Ocurrió un error al intentar ingresar la orden'
@@ -91,6 +92,8 @@ class MyRofexClient:
                 if(order_status != None and order_status['order']['status'] == 'NEW'):
                     print(successMsg)
                     ret = True;
+                elif(order_status != None and order_status['order']['status'] == 'REJECTED'):
+                    print(rejectedMsg.format(order_status['order']['text']))
                 else:
                     print(failedMsg)
             else:
