@@ -4,6 +4,9 @@ Consultar sobre Remarkets el BID de un símbolo e ingresar una orden de compra a
 
 ## Requisitos
 - pipenv
+```shell
+$pipenv install
+```
 
 
 ## Uso
